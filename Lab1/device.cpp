@@ -91,10 +91,7 @@ public:
     void addOutput(shared_ptr<Stream> s){
       if(outputs.size() < outputAmount) outputs.push_back(s);
       else throw "OUTPUT STREAM LIMIT!";
-      
     }
-    vector<shared_ptr<Stream>> getInputs() const { return inputs; }
-    vector<shared_ptr<Stream>> getOutputs() const { return outputs; }
 
     /**
      * @brief Update the output streams of the device (to be implemented by derived classes).
@@ -224,13 +221,13 @@ public:
     Reactor(bool isDoubleReactor) {
         inputAmount = 1;
         if (isDoubleReactor) outputAmount = 2;
-        else outputAmount = 1;
+        else inputAmount = 1;
     }
     
     void updateOutputs() override{
         double inputMass = inputs.at(0) -> getMassFlow();
             for(int i = 0; i < outputAmount; i++){
-            double outputLocal = inputMass * (1.0/outputAmount);
+            double outputLocal = inputMass * (1/outputAmount);
             outputs.at(i) -> setMassFlow(outputLocal);
         }
     }
@@ -239,7 +236,7 @@ public:
 void testTooManyOutputStreams(){
     streamcounter=0;
     
-    Reactor dl(false);
+    Reactor dl = new Reactor(false);
     
     shared_ptr<Stream> s1(new Stream(++streamcounter));
     shared_ptr<Stream> s2(new Stream(++streamcounter));
@@ -250,8 +247,8 @@ void testTooManyOutputStreams(){
     dl.addOutput(s2);
     try{
         dl.addOutput(s3);
-    } catch (const char* ex) {
-         if (string(ex)  == "OUTPUT STREAM LIMIT!")
+    } catch(const string ex){
+         if (ex == "OUTPUT STREAM LIMIT!")
             cout << "Test 1 passed" << endl;
 
         return;
@@ -261,34 +258,31 @@ void testTooManyOutputStreams(){
 }
 
 void testTooManyInputStreams(){
-    streamcounter = 0;
+    streamcounter=0;
     
-    Reactor dl(false);
+    Reactor dl = new Reactor(false);
     
     shared_ptr<Stream> s1(new Stream(++streamcounter));
-    shared_ptr<Stream> s2(new Stream(++streamcounter));
+    shared_ptr<Stream> s3(new Stream(++streamcounter));
     s1->setMassFlow(10.0);
-
+    s2->setMassFlow(5.0);
     dl.addInput(s1);
-    
-    try {
-        dl.addInput(s2); // добавляем второй поток — должно выбросить исключение
-    } catch (const char* ex) { // ловим литерал строки
-        if (string(ex) == "INPUT STREAM LIMIT!") {
+    try{
+        dl.addInput(s3);
+    } catch(const string ex){
+         if (ex == "INPUT STREAM LIMIT!")
             cout << "Test 2 passed" << endl;
-            return;
-        }
+
+        return;
     }
     
-    cout << "Test 2 failed" << endl;
+     cout << "Test 2 failed"s << endl;
 }
-
-
 
 void testInputEqualOutput(){
         streamcounter=0;
     
-    Reactor dl(true);
+    Reactor dl = new Reactor(true);
     
     shared_ptr<Stream> s1(new Stream(++streamcounter));
     shared_ptr<Stream> s2(new Stream(++streamcounter));
@@ -301,12 +295,10 @@ void testInputEqualOutput(){
     
     dl.updateOutputs();
     
-    if (abs(dl.getOutputs().at(0)->getMassFlow() + 
-        dl.getOutputs().at(1)->getMassFlow() - 
-        dl.getInputs().at(0)->getMassFlow()) < POSSIBLE_ERROR)
-    cout << "Test 3 passed" << endl;
+    if(dl.outputs.at(0).getMassFlow + dl.outputs.at(1).getMassFlow == dl.inputs.at(0).getMassFlow)
+        cout << "Test 3 passed" << endl;
     else
-    cout << "Test 3 failed" << endl;
+        cout << "Test 3 failed" << endl;
 }
 
 void tests(){
