@@ -1,7 +1,7 @@
 /**
  * @file main.cpp
  *
- * @brief A C++ program demonstrating the usage of the Stream and Device classes.
+ * @brief A C++ programlsdemonstrating the usage of the Stream and Device classes.
  */
 
 #include <iostream>
@@ -91,7 +91,10 @@ public:
     void addOutput(shared_ptr<Stream> s){
       if(outputs.size() < outputAmount) outputs.push_back(s);
       else throw "OUTPUT STREAM LIMIT!";
+      
     }
+    vector<shared_ptr<Stream>> getInputs() const { return inputs; }
+    vector<shared_ptr<Stream>> getOutputs() const { return outputs; }
 
     /**
      * @brief Update the output streams of the device (to be implemented by derived classes).
@@ -221,22 +224,48 @@ public:
     Reactor(bool isDoubleReactor) {
         inputAmount = 1;
         if (isDoubleReactor) outputAmount = 2;
-        else inputAmount = 1;
+        else outputAmount = 1;
     }
     
     void updateOutputs() override{
         double inputMass = inputs.at(0) -> getMassFlow();
             for(int i = 0; i < outputAmount; i++){
-            double outputLocal = inputMass * (1/outputAmount);
+            double outputLocal = inputMass * (1.0/outputAmount);
             outputs.at(i) -> setMassFlow(outputLocal);
         }
+    }
+};
+
+/**
+ * @class Drobilka
+ * @brief Represents a crusher device (1 input, 1 output)
+ */
+class Drobilka : public Device {
+private:
+    double crushFactor; // во сколько раз уменьшает поток (например, 2 = делим пополам)
+public:
+    Drobilka(double factor = 2.0) {
+        inputAmount = 1;
+        outputAmount = 1;
+        if (factor <= 0) throw "Invalid factor"s;
+        crushFactor = factor;
+    }
+
+    void updateOutputs() override {
+        if (inputs.size() < 1) throw "NO INPUT STREAM!"s;
+        if (outputs.size() < 1) throw "NO OUTPUT STREAM!"s;
+
+        double inputMass = inputs.at(0)->getMassFlow();
+        double outputMass = inputMass / crushFactor;
+
+        outputs.at(0)->setMassFlow(outputMass);
     }
 };
 
 void testTooManyOutputStreams(){
     streamcounter=0;
     
-    Reactor dl = new Reactor(false);
+    Reactor dl(false);
     
     shared_ptr<Stream> s1(new Stream(++streamcounter));
     shared_ptr<Stream> s2(new Stream(++streamcounter));
@@ -247,8 +276,8 @@ void testTooManyOutputStreams(){
     dl.addOutput(s2);
     try{
         dl.addOutput(s3);
-    } catch(const string ex){
-         if (ex == "OUTPUT STREAM LIMIT!")
+    } catch (const char* ex) {
+         if (string(ex)  == "OUTPUT STREAM LIMIT!")
             cout << "Test 1 passed" << endl;
 
         return;
@@ -258,31 +287,34 @@ void testTooManyOutputStreams(){
 }
 
 void testTooManyInputStreams(){
-    streamcounter=0;
+    streamcounter = 0;
     
-    Reactor dl = new Reactor(false);
+    Reactor dl(false);
     
     shared_ptr<Stream> s1(new Stream(++streamcounter));
-    shared_ptr<Stream> s3(new Stream(++streamcounter));
+    shared_ptr<Stream> s2(new Stream(++streamcounter));
     s1->setMassFlow(10.0);
-    s2->setMassFlow(5.0);
-    dl.addInput(s1);
-    try{
-        dl.addInput(s3);
-    } catch(const string ex){
-         if (ex == "INPUT STREAM LIMIT!")
-            cout << "Test 2 passed" << endl;
 
-        return;
+    dl.addInput(s1);
+    
+    try {
+        dl.addInput(s2); // добавляем второй поток — должно выбросить исключение
+    } catch (const char* ex) { // ловим литерал строки
+        if (string(ex) == "INPUT STREAM LIMIT!") {
+            cout << "Test 2 passed" << endl;
+            return;
+        }
     }
     
-     cout << "Test 2 failed"s << endl;
+    cout << "Test 2 failed" << endl;
 }
+
+
 
 void testInputEqualOutput(){
         streamcounter=0;
     
-    Reactor dl = new Reactor(true);
+    Reactor dl(true);
     
     shared_ptr<Stream> s1(new Stream(++streamcounter));
     shared_ptr<Stream> s2(new Stream(++streamcounter));
@@ -295,10 +327,12 @@ void testInputEqualOutput(){
     
     dl.updateOutputs();
     
-    if(dl.outputs.at(0).getMassFlow + dl.outputs.at(1).getMassFlow == dl.inputs.at(0).getMassFlow)
-        cout << "Test 3 passed" << endl;
+    if (abs(dl.getOutputs().at(0)->getMassFlow() + 
+        dl.getOutputs().at(1)->getMassFlow() - 
+        dl.getInputs().at(0)->getMassFlow()) < POSSIBLE_ERROR)
+    cout << "Test 3 passed" << endl;
     else
-        cout << "Test 3 failed" << endl;
+    cout << "Test 3 failed" << endl;
 }
 
 void tests(){
