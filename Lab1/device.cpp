@@ -262,6 +262,28 @@ public:
     }
 };
 
+/**
+ * @brief Проверяет, что дробилка корректно делит поток пополам.
+ */
+void testDrobilkaHalvesFlow() {
+    streamcounter = 0; // сбрасываем счётчик потоков для чистоты теста
+
+    Drobilka d(2.0); // создаём дробилку, которая делит поток на 2
+    auto s1 = make_shared<Stream>(++streamcounter); // создаём входной поток s1
+    auto s2 = make_shared<Stream>(++streamcounter); // создаём выходной поток s2
+
+    s1->setMassFlow(10.0); // задаём входной массовый расход = 10.0
+    d.addInput(s1); // подключаем входной поток к дробилке
+    d.addOutput(s2); // подключаем выходной поток к дробилке
+    d.updateOutputs(); // обновляем выход — логика дробилки должна уменьшить поток в 2 раза
+
+    // Проверяем: ожидаем, что выход = 5.0 (10 / 2)
+    if (abs(s2->getMassFlow() - 5.0) < POSSIBLE_ERROR)
+        cout << "Drobilka Test 1 passed (flow halved)" << endl;
+    else
+        cout << "Drobilka Test 1 failed" << endl;
+}
+
 void testTooManyOutputStreams(){
     streamcounter=0;
     
@@ -334,12 +356,17 @@ void testInputEqualOutput(){
     else
     cout << "Test 3 failed" << endl;
 }
+/**
+ * @brief Проверяет, что при попытке создать дробилку с нулевым коэффициентом возникает исключение.
+ */
+
 
 void tests(){
     testInputEqualOutput();
     testTooManyOutputStreams();
     testTooManyInputStreams();
-    
+    testDrobilkaHalvesFlow();
+
     shouldSetOutputsCorrectlyWithOneOutput();
     shouldCorrectOutputs();
     shouldCorrectInputs();
