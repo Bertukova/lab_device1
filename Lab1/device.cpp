@@ -361,16 +361,37 @@ void testInputEqualOutput(){
  */
 void testDrobilkaInvalidFactor() {
     try {
-        Drobilka bad(0); // создаём дробилку с crushFactor = 0 — должно выбросить исключение
-        cout << "Drobilka Test 2 failed (no exception)" << endl; // если дошли сюда — тест не пройден
-    } catch (const string& ex) { // ловим исключение типа string
-        if (ex == "Invalid factor"s) // проверяем, что сообщение совпадает
+        Drobilka bad(0); 
+        cout << "Drobilka Test 2 failed (no exception)" << endl; 
+    } catch (const string& ex) { // 
+        if (ex == "Invalid factor"s) 
             cout << "Drobilka Test 2 passed (invalid factor caught)" << endl;
         else
             cout << "Drobilka Test 2 failed (wrong exception)" << endl;
-    } catch (...) { // если выброшено что-то другое
+    } catch (...) { 
         cout << "Drobilka Test 2 failed (unknown exception)" << endl;
     }
+}
+
+/**
+ * @brief Проверяет, что реактор с одним выходом сохраняет массу (вход = выход).
+ */
+void testReactorSingleOutput() {
+    streamcounter = 0; 
+
+    Reactor r(false); 
+    auto s1 = make_shared<Stream>(++streamcounter);
+    auto s2 = make_shared<Stream>(++streamcounter);
+
+    s1->setMassFlow(12.0); 
+    r.addInput(s1); 
+    r.addOutput(s2); 
+    r.updateOutputs(); 
+
+    if (abs(s2->getMassFlow() - 12.0) < POSSIBLE_ERROR)
+        cout << "Reactor Test 3 passed (output == input)" << endl;
+    else
+        cout << "Reactor Test 3 failed" << endl;
 }
 
 void tests(){
@@ -379,7 +400,8 @@ void tests(){
     testTooManyInputStreams();
     testDrobilkaHalvesFlow();
     testDrobilkaInvalidFactor();
-    
+    testReactorSingleOutput();
+
     shouldSetOutputsCorrectlyWithOneOutput();
     shouldCorrectOutputs();
     shouldCorrectInputs();
