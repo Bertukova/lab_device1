@@ -357,16 +357,29 @@ void testInputEqualOutput(){
     cout << "Test 3 failed" << endl;
 }
 /**
- * @brief Проверяет, что при попытке создать дробилку с нулевым коэффициентом возникает исключение.
+ * @brief Проверяем, что при попытке создать дробилку с нулевым коэффициентом возникает исключение.
  */
-
+void testDrobilkaInvalidFactor() {
+    try {
+        Drobilka bad(0); // создаём дробилку с crushFactor = 0 — должно выбросить исключение
+        cout << "Drobilka Test 2 failed (no exception)" << endl; // если дошли сюда — тест не пройден
+    } catch (const string& ex) { // ловим исключение типа string
+        if (ex == "Invalid factor"s) // проверяем, что сообщение совпадает
+            cout << "Drobilka Test 2 passed (invalid factor caught)" << endl;
+        else
+            cout << "Drobilka Test 2 failed (wrong exception)" << endl;
+    } catch (...) { // если выброшено что-то другое
+        cout << "Drobilka Test 2 failed (unknown exception)" << endl;
+    }
+}
 
 void tests(){
     testInputEqualOutput();
     testTooManyOutputStreams();
     testTooManyInputStreams();
     testDrobilkaHalvesFlow();
-
+    testDrobilkaInvalidFactor();
+    
     shouldSetOutputsCorrectlyWithOneOutput();
     shouldCorrectOutputs();
     shouldCorrectInputs();
