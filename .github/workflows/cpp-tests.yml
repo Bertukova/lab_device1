@@ -1,0 +1,28 @@
+name: C++ CI
+
+on:
+  push:
+    branches: [ "student" ]
+  pull_request:
+    branches: [ "student" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: sudo apt update && sudo apt install -y build-essential gcovr
+
+    - name: Build project
+      run: |
+        g++ device.cpp -o device.out -std=c++17
+        echo "✅ Compilation successful!"
+
+    - name: Run tests
+      run: |
+        ./device.out
+        echo "✅ All tests executed successfully!"
