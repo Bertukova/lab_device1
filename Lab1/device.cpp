@@ -157,9 +157,9 @@ void shouldSetOutputsCorrectlyWithOneOutput() {
     d1.updateOutputs();
 
     if (abs(s3->getMassFlow()) - 15 < POSSIBLE_ERROR) {
-      cout << "Test 1 passed"s << endl;
+      cout << "Mixer Test 1 passed"s << endl;
     } else {
-      cout << "Test 1 failed"s << endl;
+      cout << "Mixer Test 1 failed"s << endl;
     }
 }
 
@@ -182,13 +182,13 @@ void shouldCorrectOutputs() {
       d1.addOutput(s4);
     } catch (const string ex) {
       if (ex == "Too much outputs"s) {
-        cout << "Test 2 passed"s << endl;
+        cout << "Mixer Test 2 passed"s << endl;
 
         return;
       }
     }
 
-    cout << "Test 2 failed"s << endl;
+    cout << "Mixer Test 2 failed"s << endl;
 }
 
 void shouldCorrectInputs() {
@@ -210,13 +210,13 @@ void shouldCorrectInputs() {
       d1.addInput(s4);
     } catch (const string ex) {
       if (ex == "Too much inputs"s) {
-        cout << "Test 3 passed"s << endl;
+        cout << "Mixer Test 3 passed"s << endl;
 
         return;
       }
     }
 
-    cout << "Test 3 failed"s << endl;
+    cout << "Mixer Test 3 failed"s << endl;
 }
 
 class Reactor : public Device{
@@ -262,27 +262,6 @@ public:
     }
 };
 
-/**
- * @brief Проверяет, что дробилка корректно делит поток пополам.
- */
-void testDrobilkaHalvesFlow() {
-    streamcounter = 0; // сбрасываем счётчик потоков для чистоты теста
-
-    Drobilka d(2.0); // создаём дробилку, которая делит поток на 2
-    auto s1 = make_shared<Stream>(++streamcounter); // создаём входной поток s1
-    auto s2 = make_shared<Stream>(++streamcounter); // создаём выходной поток s2
-
-    s1->setMassFlow(10.0); // задаём входной массовый расход = 10.0
-    d.addInput(s1); // подключаем входной поток к дробилке
-    d.addOutput(s2); // подключаем выходной поток к дробилке
-    d.updateOutputs(); // обновляем выход — логика дробилки должна уменьшить поток в 2 раза
-
-    // Проверяем: ожидаем, что выход = 5.0 (10 / 2)
-    if (abs(s2->getMassFlow() - 5.0) < POSSIBLE_ERROR)
-        cout << "Drobilka Test 1 passed (flow halved)" << endl;
-    else
-        cout << "Drobilka Test 1 failed" << endl;
-}
 
 void testTooManyOutputStreams(){
     streamcounter=0;
@@ -300,12 +279,12 @@ void testTooManyOutputStreams(){
         dl.addOutput(s3);
     } catch (const char* ex) {
          if (string(ex)  == "OUTPUT STREAM LIMIT!")
-            cout << "Test 1 passed" << endl;
+            cout << "Reactor Test 1 passed" << endl;
 
         return;
     }
     
-     cout << "Test 1 failed" << endl;
+     cout << "Reactor Test 1 failed" << endl;
 }
 
 void testTooManyInputStreams(){
@@ -323,12 +302,12 @@ void testTooManyInputStreams(){
         dl.addInput(s2); // добавляем второй поток — должно выбросить исключение
     } catch (const char* ex) { // ловим литерал строки
         if (string(ex) == "INPUT STREAM LIMIT!") {
-            cout << "Test 2 passed" << endl;
+            cout << "Reactor Test 2 passed" << endl;
             return;
         }
     }
     
-    cout << "Test 2 failed" << endl;
+    cout << "Reactor Test 2 failed" << endl;
 }
 
 
@@ -352,10 +331,32 @@ void testInputEqualOutput(){
     if (abs(dl.getOutputs().at(0)->getMassFlow() + 
         dl.getOutputs().at(1)->getMassFlow() - 
         dl.getInputs().at(0)->getMassFlow()) < POSSIBLE_ERROR)
-    cout << "Test 3 passed" << endl;
+    cout << "Reactor Test 3 passed" << endl;
     else
-    cout << "Test 3 failed" << endl;
+    cout << "Reactor Test 3 failed" << endl;
 }
+
+/**
+ * @brief Проверяет, что дробилка корректно делит поток пополам.
+ */
+void testDrobilkaHalvesFlow() {
+    streamcounter = 0; 
+
+    Drobilka d(2.0); 
+    auto s1 = make_shared<Stream>(++streamcounter); 
+    auto s2 = make_shared<Stream>(++streamcounter); 
+
+    s1->setMassFlow(10.0); 
+    d.addInput(s1); 
+    d.addOutput(s2); 
+    d.updateOutputs(); 
+
+    if (abs(s2->getMassFlow() - 5.0) < POSSIBLE_ERROR)
+        cout << "Drobilka Test 1 passed (flow halved)" << endl;
+    else
+        cout << "Drobilka Test 1 failed" << endl;
+}
+
 /**
  * @brief Проверяем, что при попытке создать дробилку с нулевым коэффициентом возникает исключение.
  */
@@ -418,6 +419,31 @@ void testReactorDoubleOutputBalance() {
         cout << "Reactor Test 4 failed" << endl;
 }
 
+/**
+ * @brief Проверяет, что миксер правильно суммирует входные потоки.
+ */
+void testMixerSumOfInputs() {
+    streamcounter = 0; 
+
+    Mixer m(2); 
+    auto s1 = make_shared<Stream>(++streamcounter); 
+    auto s2 = make_shared<Stream>(++streamcounter); 
+    auto s3 = make_shared<Stream>(++streamcounter); 
+
+    s1->setMassFlow(3.0); 
+    s2->setMassFlow(7.0); 
+
+    m.addInput(s1); 
+    m.addInput(s2); 
+    m.addOutput(s3); 
+    m.updateOutputs(); 
+
+    if (abs(s3->getMassFlow() - 10.0) < POSSIBLE_ERROR)
+        cout << "Mixer Test 5 passed (output = sum of inputs)" << endl;
+    else
+        cout << "Mixer Test 5 failed" << endl;
+}
+
 void tests(){
     testInputEqualOutput();
     testTooManyOutputStreams();
@@ -426,6 +452,7 @@ void tests(){
     testDrobilkaInvalidFactor();
     testReactorSingleOutput();
     testReactorDoubleOutputBalance();
+    testMixerSumOfInputs();
 
     shouldSetOutputsCorrectlyWithOneOutput();
     shouldCorrectOutputs();
