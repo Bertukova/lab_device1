@@ -394,6 +394,30 @@ void testReactorSingleOutput() {
         cout << "Reactor Test 3 failed" << endl;
 }
 
+/**
+ * @brief Проверяет, что реактор с двумя выходами делит поток поровну и сохраняет баланс масс.
+ */
+void testReactorDoubleOutputBalance() {
+    streamcounter = 0; 
+
+    Reactor r(true); 
+    auto s1 = make_shared<Stream>(++streamcounter); 
+    auto s2 = make_shared<Stream>(++streamcounter); 
+    auto s3 = make_shared<Stream>(++streamcounter); 
+
+    s1->setMassFlow(20.0); 
+    r.addInput(s1); 
+    r.addOutput(s2); 
+    r.addOutput(s3); 
+    r.updateOutputs(); 
+
+    double totalOutput = s2->getMassFlow() + s3->getMassFlow(); 
+    if (abs(totalOutput - s1->getMassFlow()) < POSSIBLE_ERROR)
+        cout << "Reactor Test 4 passed (sum of outputs == input)" << endl;
+    else
+        cout << "Reactor Test 4 failed" << endl;
+}
+
 void tests(){
     testInputEqualOutput();
     testTooManyOutputStreams();
@@ -401,6 +425,7 @@ void tests(){
     testDrobilkaHalvesFlow();
     testDrobilkaInvalidFactor();
     testReactorSingleOutput();
+    testReactorDoubleOutputBalance();
 
     shouldSetOutputsCorrectlyWithOneOutput();
     shouldCorrectOutputs();
